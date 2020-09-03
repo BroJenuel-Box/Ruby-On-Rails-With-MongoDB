@@ -1,5 +1,9 @@
 class Api::V1::UsersController < ApplicationController
      before_action :getUser, only: [:updateUser, :deleteUser, :showUser]
+
+     before_action only: [:updateUser, :deleteUser] do
+          check_token
+     end
      
      # get
      def getUsers
