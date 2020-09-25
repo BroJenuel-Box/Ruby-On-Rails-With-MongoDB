@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
     namespace :auth do
       post 'login', action: :login, controller: :auth
+      post 'check_token', action: :checkToken, controller: :auth
     end
 
     namespace :v1 do

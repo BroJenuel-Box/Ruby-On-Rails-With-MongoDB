@@ -7,12 +7,12 @@ class ApplicationController < ActionController::API
           return generate_token(user_id, username, user_type)
      end
 
-     def check_token(user_type = 1, return_user = false)
+     def check_token(user_type = 1, return_user = false, forCheckingOnly = false)
           user_token = decrypt_token(request.headers['token'])
           if user_token
                account = User.find(user_token[:id])
 
-               if account.type.to_i != user_type
+               if account.type.to_i != user_type && !forCheckingOnly
                     render json: { msg: 'Unauthorized Your Type is not 1' }, status: :unauthorized
                     return false
                end

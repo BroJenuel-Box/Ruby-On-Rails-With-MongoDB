@@ -19,4 +19,8 @@ class Api::Auth::AuthController < ApplicationController
     end
 
   end
+
+  def checkToken
+    self.check_token(1, true, true);
+  end
 end

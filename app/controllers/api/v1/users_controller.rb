@@ -2,14 +2,39 @@ class Api::V1::UsersController < ApplicationController
      before_action :getUser, only: [:updateUser, :deleteUser, :showUser]
 
      before_action only: [:updateUser, :deleteUser] do
-          check_token
+          check_token(2)
      end
      
      # get
      def getUsers
-          user = User.all
-          if user
-               render json: user, status: :ok
+
+          limit = params[:limit] ? params[:limit] : 10
+          page = params[:page] ? params[:page] : 1
+
+          offset = page == 1 ? 0 : (limit.to_i * page.to_i) - (limit.to_i)
+
+          query = [
+               {
+                    :username => /.*#{params[:search]}.*/
+               },
+               {
+                    :email => /.*#{params[:search]}.*/
+               },
+               {
+                    :id => params[:search]
+               }
+          ]
+
+          users = User.any_of(query).limit(limit).offset(offset).order('id DESC').map do |u|
+               u.as_json({
+                    :except => [:password_digest, :_id, :token]
+               }).merge({
+                    id: u._id.to_s
+               })
+          end
+
+          if users
+               render json: { :limit => limit, :page => page, data: users, count: User.count  }, status: :ok
           else
                render json: { msg: "user Empty" }, status: :unprocessable_entity
           end
@@ -21,7 +46,7 @@ class Api::V1::UsersController < ApplicationController
           user.type = 2; # eveytime a user is created a type is will be default as 2
 
           if user.save()
-               render json: user, status: :ok
+               render json: user.as_json({:except => [:password_digest]}).merge({:id => user.id.to_s}), status: :ok
           else
                render json: { msg: "User not added", error: user.errors }, status: :unprocessable_entity
           end
